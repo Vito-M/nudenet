@@ -1,0 +1,2 @@
+# Modello NudeNet
+git+https://github.com/platelminto/NudeNet@main#egg=nudenetclassifier
