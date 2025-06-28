@@ -51,6 +51,7 @@ nudenet/
 ├── img/           # Cartella dove inserire le immagini da analizzare
 ├── safe/          # Immagini classificate come sicure (generate automaticamente)
 ├── unsafe/        # Immagini classificate come inappropriate (generate automaticamente)
+├── logs/          # Logs della scansione effettuata
 ├── main.py
 ├── requirements.txt
 └── ...

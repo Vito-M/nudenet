@@ -2,17 +2,41 @@ import os
 import shutil
 import time
 from pathlib import Path
+from datetime import datetime
 from nudenet import NudeClassifier
 
 def setup_directories():
-    """Crea le cartelle safe e unsafe se non esistono"""
+    """Crea le cartelle safe, unsafe e logs se non esistono"""
     safe_dir = Path("safe")
     unsafe_dir = Path("unsafe")
+    logs_dir = Path("logs")
     
     safe_dir.mkdir(exist_ok=True)
     unsafe_dir.mkdir(exist_ok=True)
+    logs_dir.mkdir(exist_ok=True)
     
-    return safe_dir, unsafe_dir
+    return safe_dir, unsafe_dir, logs_dir
+
+def create_log_file(logs_dir):
+    """Crea il file di log con timestamp nel nome"""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_filename = f"classification_log_{timestamp}.txt"
+    log_path = logs_dir / log_filename
+    
+    # Crea l'intestazione del log
+    with open(log_path, 'w', encoding='utf-8') as log_file:
+        log_file.write(f"LOG CLASSIFICAZIONE IMMAGINI - {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n")
+        log_file.write("="*80 + "\n\n")
+    
+    return log_path
+
+def log_message(log_path, message, print_to_console=True):
+    """Scrive un messaggio sia nel log che nel terminale"""
+    if print_to_console:
+        print(message)
+    
+    with open(log_path, 'a', encoding='utf-8') as log_file:
+        log_file.write(message + "\n")
 
 def get_image_files(img_dir):
     """Ottiene tutti i file immagine dalla cartella img"""
@@ -43,23 +67,30 @@ def classify_and_organize_images(batch_size, threshold):
     start_time = time.time()
     
     # Setup delle cartelle
-    safe_dir, unsafe_dir = setup_directories()
+    safe_dir, unsafe_dir, logs_dir = setup_directories()
+    
+    # Crea il file di log
+    log_path = create_log_file(logs_dir)
     
     # Ottieni tutte le immagini dalla cartella img
     image_files = get_image_files("img")
     
     if not image_files:
-        print("Nessuna immagine trovata nella cartella 'img'")
+        log_message(log_path, "Nessuna immagine trovata nella cartella 'img'")
         return
     
-    print(f"Trovate {len(image_files)} immagini da classificare...\n")
+    log_message(log_path, f"Trovate {len(image_files)} immagini da classificare...")
+    log_message(log_path, f"Batch size: {batch_size}")
+    log_message(log_path, f"Soglia unsafe: {threshold}")
+    log_message(log_path, "")
     
     # Inizializza il classificatore
-    print("Inizializzazione del classificatore NudeNet...")
+    log_message(log_path, "Inizializzazione del classificatore NudeNet...")
     classifier = NudeClassifier()
     
     # Classifica le immagini
-    print("Classificazione in corso...\n")
+    log_message(log_path, "Classificazione in corso...")
+    log_message(log_path, "")
     
     # Processa i file in batch ma mostra progresso per ogni file
     total_files = len(image_files)
@@ -93,16 +124,19 @@ def classify_and_organize_images(batch_size, threshold):
                     destination = unsafe_dir / filename
                     shutil.copy2(str(source_path), str(destination))
                     unsafe_count += 1
-                    print(f"[{processed_files}/{total_files}] UNSAFE: {filename} (probabilità: {unsafe_probability:.3f}) -> copiata in 'unsafe/'")
+                    message = f"[{processed_files}/{total_files}] UNSAFE: {filename} (probabilità: {unsafe_probability:.3f}) -> copiata in 'unsafe/'"
+                    log_message(log_path, message)
                 else:
                     # Immagine safe
                     destination = safe_dir / filename
                     shutil.copy2(str(source_path), str(destination))
                     safe_count += 1
-                    print(f"[{processed_files}/{total_files}] SAFE: {filename} (probabilità unsafe: {unsafe_probability:.3f}) -> copiata in 'safe/'")
+                    message = f"[{processed_files}/{total_files}] SAFE: {filename} (probabilità unsafe: {unsafe_probability:.3f}) -> copiata in 'safe/'"
+                    log_message(log_path, message)
                     
             except Exception as e:
-                print(f"[{processed_files}/{total_files}] Errore nel processare {image_path}: {str(e)}")
+                error_message = f"[{processed_files}/{total_files}] Errore nel processare {image_path}: {str(e)}"
+                log_message(log_path, error_message)
                 error_count += 1
         
         batch_start = batch_end
@@ -112,14 +146,18 @@ def classify_and_organize_images(batch_size, threshold):
     mins, secs = divmod(elapsed_time, 60)
     
     # Riepilogo finale
-    print("\n" + "="*50)
-    print("RIEPILOGO CLASSIFICAZIONE:")
-    print(f"Immagini safe: {safe_count}")
-    print(f"Immagini unsafe: {unsafe_count}")
-    print(f"Errori: {error_count}")
-    print(f"Totale processate: {safe_count + unsafe_count}")
-    print(f"Tempo totale di esecuzione: {int(mins)} minuti e {secs:.2f} secondi")
-    print("="*50)
+    log_message(log_path, "")
+    log_message(log_path, "="*50)
+    log_message(log_path, "RIEPILOGO CLASSIFICAZIONE:")
+    log_message(log_path, f"Immagini safe: {safe_count}")
+    log_message(log_path, f"Immagini unsafe: {unsafe_count}")
+    log_message(log_path, f"Errori: {error_count}")
+    log_message(log_path, f"Totale processate: {safe_count + unsafe_count}")
+    log_message(log_path, f"Tempo totale di esecuzione: {int(mins)} minuti e {secs:.2f} secondi")
+    log_message(log_path, "="*50)
+    log_message(log_path, f"Log salvato in: {log_path}")
+    
+    print(f"\nLog completo salvato in: {log_path}")
 
 def main():
     """Funzione principale"""
