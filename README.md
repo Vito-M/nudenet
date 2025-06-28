@@ -24,6 +24,7 @@ Questo sistema di rilevamento automatico utilizza il modulo **NudeNet**, una ret
 
 ## 📋 Indice
 - [⚙️ Requisiti](#️-requisiti)
+- [🚀 Funzionamento del Sistema](#-funzionamento-del-sistema)
 - [🪟 Windows](#-windows)
 - [🐧 Linux](#-linux)
 - [🔧 Istruzioni di Installazione](#-istruzioni-di-installazione)
@@ -36,6 +37,40 @@ Questo sistema di rilevamento automatico utilizza il modulo **NudeNet**, una ret
 - [Python 3.10+](https://www.python.org)
 - Git
 - Sistema operativo: Windows 10/11 o Linux (Ubuntu 18.04+, Debian 10+, CentOS 7+)
+
+---
+
+## 🚀 Funzionamento del Sistema
+
+### 📁 Struttura delle Cartelle
+
+Il sistema utilizza una struttura di cartelle specifica per organizzare le immagini durante il processo di analisi:
+
+```
+nudenet/
+├── img/           # Cartella dove inserire le immagini da analizzare
+├── safe/          # Immagini classificate come sicure (generate automaticamente)
+├── unsafe/        # Immagini classificate come inappropriate (generate automaticamente)
+├── main.py
+├── requirements.txt
+└── ...
+```
+
+### 🔄 Processo di Analisi
+
+1. **Preparazione:** Inserire tutte le immagini da analizzare nella cartella `img/` del progetto
+2. **Esecuzione:** Avviare il programma con `python main.py`
+3. **Elaborazione:** Il sistema analizza automaticamente tutte le immagini presenti nella cartella `img/`
+4. **Classificazione:** Le immagini vengono automaticamente copiate in:
+   - `safe/` - Immagini classificate come appropriate e sicure
+   - `unsafe/` - Immagini classificate come inappropriate o contenenti contenuti sensibili
+
+### 📋 Formati Supportati
+- JPEG (.jpg, .jpeg)
+- PNG (.png)
+- BMP (.bmp)
+- TIFF (.tiff, .tif)
+- Altri formati immagine comuni
 
 ---
 
