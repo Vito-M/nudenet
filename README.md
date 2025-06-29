@@ -58,6 +58,7 @@ nudenet/
 
 **Note:**
 - Il programma chiederà quale directory analizzare all'avvio
+- **IMPORTANTE:** La cartella contenente le immagini da analizzare deve essere posizionata all'interno della directory del progetto `nudenet/` (altrimenti il programma non funzionerà correttamente)
 - Viene richiesta la configurazione del **batch size** per ottimizzare le prestazioni in base all'hardware disponibile
 - Ogni scansione crea una nuova cartella con timestamp in `scan/`
 - I risultati sono organizzati cronologicamente per sessione
