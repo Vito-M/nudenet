@@ -58,10 +58,24 @@ nudenet/
 
 **Note:**
 - Il programma chiederà quale directory analizzare all'avvio
+- Viene richiesta la configurazione del **batch size** per ottimizzare le prestazioni in base all'hardware disponibile
 - Ogni scansione crea una nuova cartella con timestamp in `scan/`
 - I risultati sono organizzati cronologicamente per sessione
 - Il log è salvato direttamente nella cartella della sessione
 - Le immagini originali rimangono intatte nella directory di origine
+
+### ⚙️ Configurazione Batch Size
+
+Il **batch size** determina quante immagini vengono processate simultaneamente:
+
+- **Batch Size Basso (1-4)**: Ideale per hardware meno potente
+- **Batch Size Medio (4-8)**: Consigliato per la maggior parte dei sistemi (default: 4)
+- **Batch Size Alto (8-20+)**: Per sistemi con hardware potente
+
+**Suggerimenti:**
+- Se il programma va in crash per memoria insufficiente, riduci il batch size
+- Per velocizzare il processo su hardware potente, aumenta gradualmente il valore
+- Il sistema avviserà automaticamente per valori molto alti (>50)
 
 ### 📋 Formati Supportati
 - JPEG (.jpg, .jpeg)
@@ -247,7 +261,7 @@ pip list
 
 - **Importante:** Verificare sempre che l'ambiente virtuale sia attivato prima di installare dipendenze o eseguire il programma
 - **Troubleshooting:** In caso di errori durante l'installazione delle dipendenze, assicurarsi di avere tutti i prerequisiti di sistema installati
-- **Performance:** Per ottimizzare le prestazioni, regola il parametro `BATCH_SIZE` in base alle specifiche della tua macchina. Un valore più alto (es. 32-64) è consigliato per GPU potenti con molta VRAM, mentre valori più bassi (es. 8-16) sono più adatti per hardware con risorse limitate. Monitora l'utilizzo della memoria durante l'esecuzione per trovare il valore ottimale.
+- **Performance:** Per ottimizzare le prestazioni, regola il parametro `BATCH_SIZE` in base alle specifiche della tua macchina. Un valore più alto (es. 32-64) è consigliato per hardware potente con una buona CPU, mentre valori più bassi (es. 8-16) sono più adatti per hardware limitati. Monitora l'utilizzo della CPU durante l'esecuzione per trovare il valore ottimale.
 
 ### 🔧 Risoluzione Problemi Comuni
 

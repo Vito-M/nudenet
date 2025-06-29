@@ -32,6 +32,33 @@ def get_input_directory():
             
         return str(dir_path)
 
+def get_batch_size():
+    """Chiede all'utente di specificare la dimensione del batch"""
+    while True:
+        try:
+            batch_input = input("Inserisci la dimensione del batch (default: 4): ").strip()
+            
+            # Se l'utente non inserisce nulla, usa il valore di default
+            if not batch_input:
+                return 4
+            
+            batch_size = int(batch_input)
+            
+            if batch_size <= 0:
+                print("Errore: La dimensione del batch deve essere un numero positivo!")
+                continue
+            
+            if batch_size > 50:
+                print("Attenzione: Un batch size molto alto potrebbe causare problemi di memoria.")
+                conferma = input(f"Vuoi continuare con batch size {batch_size}? (s/n): ").strip().lower()
+                if conferma != 's':
+                    continue
+            
+            return batch_size
+            
+        except ValueError:
+            print("Errore: Inserisci un numero valido!")
+
 def setup_scan_directories(input_directory):
     """Crea la struttura di cartelle scan/nome_YYYYMMDD_HHMMSS/safe|unsafe"""
     # Crea la cartella scan principale
@@ -235,12 +262,14 @@ def main():
         print("Operazione annullata.")
         return
     
+    # Chiedi all'utente la dimensione del batch
+    batch_size = get_batch_size()
+    
     # Parametri configurabili
-    BATCH_SIZE = 4  # Modifica secondo le tue esigenze
     THRESHOLD = 0.4  # Soglia per considerare unsafe (0.0 - 1.0)
     
     print(f"\nDirectory da analizzare: {input_directory}")
-    print(f"Batch size: {BATCH_SIZE}")
+    print(f"Batch size: {batch_size}")
     print(f"Soglia unsafe: {THRESHOLD}")
     
     # Conferma prima di procedere
@@ -254,7 +283,7 @@ def main():
     try:
         classify_and_organize_images(
             input_directory=input_directory,
-            batch_size=BATCH_SIZE, 
+            batch_size=batch_size, 
             threshold=THRESHOLD
         )
     except Exception as e:
