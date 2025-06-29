@@ -5,19 +5,55 @@ from pathlib import Path
 from datetime import datetime
 from nudenet import NudeClassifier
 
-def setup_directories():
-    """Crea le cartelle safe, unsafe e logs se non esistono"""
-    safe_dir = Path("safe")
-    unsafe_dir = Path("unsafe")
-    logs_dir = Path("logs")
+def get_input_directory():
+    """Chiede all'utente di specificare la directory da analizzare"""
+    while True:
+        dir_name = input("Inserisci il nome della directory da analizzare: ").strip()
+        
+        if not dir_name:
+            print("Errore: Il nome della directory non può essere vuoto!")
+            continue
+            
+        dir_path = Path(dir_name)
+        
+        if not dir_path.exists():
+            print(f"Errore: La directory '{dir_name}' non esiste!")
+            risposta = input("Vuoi riprovare? (s/n): ").strip().lower()
+            if risposta != 's':
+                return None
+            continue
+            
+        if not dir_path.is_dir():
+            print(f"Errore: '{dir_name}' non è una directory!")
+            risposta = input("Vuoi riprovare? (s/n): ").strip().lower()
+            if risposta != 's':
+                return None
+            continue
+            
+        return str(dir_path)
+
+def setup_scan_directories():
+    """Crea la struttura di cartelle scan/YYYYMMDD_HHMMSS/safe|unsafe|logs"""
+    # Crea la cartella scan principale
+    scan_dir = Path("scan")
+    scan_dir.mkdir(exist_ok=True)
+    
+    # Crea una sottocartella con timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    session_dir = scan_dir / timestamp
+    session_dir.mkdir(exist_ok=True)
+    
+    # Crea le sottocartelle safe, unsafe e logs
+    safe_dir = session_dir / "safe"
+    unsafe_dir = session_dir / "unsafe"
+    logs_dir = session_dir
     
     safe_dir.mkdir(exist_ok=True)
     unsafe_dir.mkdir(exist_ok=True)
-    logs_dir.mkdir(exist_ok=True)
     
-    return safe_dir, unsafe_dir, logs_dir
+    return safe_dir, unsafe_dir, logs_dir, session_dir
 
-def create_log_file(logs_dir):
+def create_log_file(logs_dir, input_dir):
     """Crea il file di log con timestamp nel nome"""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_filename = f"classification_log_{timestamp}.txt"
@@ -26,6 +62,8 @@ def create_log_file(logs_dir):
     # Crea l'intestazione del log
     with open(log_path, 'w', encoding='utf-8') as log_file:
         log_file.write(f"LOG CLASSIFICAZIONE IMMAGINI - {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n")
+        log_file.write("="*80 + "\n")
+        log_file.write(f"Directory analizzata: {input_dir}\n")
         log_file.write("="*80 + "\n\n")
     
     return log_path
@@ -39,7 +77,7 @@ def log_message(log_path, message, print_to_console=True):
         log_file.write(message + "\n")
 
 def get_image_files(img_dir):
-    """Ottiene tutti i file immagine dalla cartella img"""
+    """Ottiene tutti i file immagine dalla cartella specificata"""
     img_path = Path(img_dir)
     
     if not img_path.exists():
@@ -50,36 +88,41 @@ def get_image_files(img_dir):
     image_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.gif', '.tiff', '.webp'}
     
     image_files = []
-    for file_path in img_path.iterdir():
+    
+    # Scansione ricorsiva di tutte le sottocartelle
+    for file_path in img_path.rglob('*'):
         if file_path.is_file() and file_path.suffix.lower() in image_extensions:
             image_files.append(str(file_path))
     
     return image_files
 
-def classify_and_organize_images(batch_size, threshold):
+def classify_and_organize_images(input_directory, batch_size, threshold):
     """
     Classifica le immagini e le sposta nelle cartelle appropriate
     
     Args:
+        input_directory (str): Directory da analizzare
         batch_size (int): Dimensione del batch per la classificazione
         threshold (float): Soglia per considerare un'immagine come unsafe (default: 0.5)
     """
     start_time = time.time()
     
-    # Setup delle cartelle
-    safe_dir, unsafe_dir, logs_dir = setup_directories()
+    # Setup delle cartelle nella struttura scan/timestamp/
+    safe_dir, unsafe_dir, logs_dir, session_dir = setup_scan_directories()
     
     # Crea il file di log
-    log_path = create_log_file(logs_dir)
+    log_path = create_log_file(logs_dir, input_directory)
     
-    # Ottieni tutte le immagini dalla cartella img
-    image_files = get_image_files("img")
+    # Ottieni tutte le immagini dalla cartella specificata
+    image_files = get_image_files(input_directory)
     
     if not image_files:
-        log_message(log_path, "Nessuna immagine trovata nella cartella 'img'")
+        log_message(log_path, f"Nessuna immagine trovata nella directory '{input_directory}'")
         return
     
     log_message(log_path, f"Trovate {len(image_files)} immagini da classificare...")
+    log_message(log_path, f"Directory di input: {input_directory}")
+    log_message(log_path, f"Directory di output: {session_dir}")
     log_message(log_path, f"Batch size: {batch_size}")
     log_message(log_path, f"Soglia unsafe: {threshold}")
     log_message(log_path, "")
@@ -116,6 +159,17 @@ def classify_and_organize_images(batch_size, threshold):
                 source_path = Path(image_path)
                 filename = source_path.name
                 
+                # Per evitare conflitti di nomi, aggiungi un prefisso se necessario
+                counter = 1
+                original_filename = filename
+                while (safe_dir / filename).exists() or (unsafe_dir / filename).exists():
+                    name_parts = original_filename.rsplit('.', 1)
+                    if len(name_parts) == 2:
+                        filename = f"{name_parts[0]}_{counter}.{name_parts[1]}"
+                    else:
+                        filename = f"{original_filename}_{counter}"
+                    counter += 1
+                
                 # Determina se l'immagine è safe o unsafe
                 unsafe_probability = classification.get('unsafe', 0)
                 
@@ -124,14 +178,14 @@ def classify_and_organize_images(batch_size, threshold):
                     destination = unsafe_dir / filename
                     shutil.copy2(str(source_path), str(destination))
                     unsafe_count += 1
-                    message = f"[{processed_files}/{total_files}] UNSAFE: {filename} (probabilità: {unsafe_probability:.3f}) -> copiata in 'unsafe/'"
+                    message = f"[{processed_files}/{total_files}] UNSAFE: {source_path.name} -> {filename} (probabilità: {unsafe_probability:.3f})"
                     log_message(log_path, message)
                 else:
                     # Immagine safe
                     destination = safe_dir / filename
                     shutil.copy2(str(source_path), str(destination))
                     safe_count += 1
-                    message = f"[{processed_files}/{total_files}] SAFE: {filename} (probabilità unsafe: {unsafe_probability:.3f}) -> copiata in 'safe/'"
+                    message = f"[{processed_files}/{total_files}] SAFE: {source_path.name} -> {filename} (probabilità unsafe: {unsafe_probability:.3f})"
                     log_message(log_path, message)
                     
             except Exception as e:
@@ -147,31 +201,59 @@ def classify_and_organize_images(batch_size, threshold):
     
     # Riepilogo finale
     log_message(log_path, "")
-    log_message(log_path, "="*50)
+    log_message(log_path, "="*60)
     log_message(log_path, "RIEPILOGO CLASSIFICAZIONE:")
+    log_message(log_path, f"Directory analizzata: {input_directory}")
+    log_message(log_path, f"Directory risultati: {session_dir}")
     log_message(log_path, f"Immagini safe: {safe_count}")
     log_message(log_path, f"Immagini unsafe: {unsafe_count}")
     log_message(log_path, f"Errori: {error_count}")
     log_message(log_path, f"Totale processate: {safe_count + unsafe_count}")
     log_message(log_path, f"Tempo totale di esecuzione: {int(mins)} minuti e {secs:.2f} secondi")
-    log_message(log_path, "="*50)
+    log_message(log_path, "="*60)
     log_message(log_path, f"Log salvato in: {log_path}")
     
-    print(f"\nLog completo salvato in: {log_path}")
+    print(f"\n" + "="*60)
+    print(f"SCANSIONE COMPLETATA!")
+    print(f"Risultati salvati in: {session_dir}")
+    print(f"Log completo in: {log_path}")
+    print("="*60)
 
 def main():
     """Funzione principale"""
+    print("="*60)
+    print("CLASSIFICATORE IMMAGINI CON NUDENET")
+    print("="*60)
+    
+    # Chiedi all'utente quale directory analizzare
+    input_directory = get_input_directory()
+    
+    if input_directory is None:
+        print("Operazione annullata.")
+        return
+    
     # Parametri configurabili
     BATCH_SIZE = 32  # Modifica secondo le tue esigenze
     THRESHOLD = 0.5  # Soglia per considerare unsafe (0.0 - 1.0)
     
-    print("Avvio classificazione immagini con NudeNet")
+    print(f"\nDirectory da analizzare: {input_directory}")
     print(f"Batch size: {BATCH_SIZE}")
     print(f"Soglia unsafe: {THRESHOLD}")
-    print("-" * 50)
+    
+    # Conferma prima di procedere
+    conferma = input(f"\nProcedere con la scansione? (s/n): ").strip().lower()
+    if conferma != 's':
+        print("Operazione annullata.")
+        return
+    
+    print("-" * 60)
     
     try:
-        classify_and_organize_images(batch_size=BATCH_SIZE, threshold=THRESHOLD)
+        classify_and_organize_images(
+            input_directory=input_directory,
+            batch_size=BATCH_SIZE, 
+            threshold=THRESHOLD
+        )
     except Exception as e:
         print(f"Errore durante l'esecuzione: {str(e)}")
 

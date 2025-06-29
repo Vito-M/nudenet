@@ -44,27 +44,24 @@ Questo sistema di rilevamento automatico utilizza il modulo **NudeNet**, una ret
 
 ### 📁 Struttura delle Cartelle
 
-Il sistema utilizza una struttura di cartelle specifica per organizzare le immagini durante il processo di analisi:
-
 ```
 nudenet/
-├── img/           # Cartella dove inserire le immagini da analizzare
-├── safe/          # Immagini classificate come sicure (generate automaticamente)
-├── unsafe/        # Immagini classificate come inappropriate (generate automaticamente)
-├── logs/          # Logs della scansione effettuata
-├── main.py
-├── requirements.txt
-└── ...
+├── scan/                    # Cartella principale contenente tutte le scansioni
+│   └── YYYYMMDD_HHMMSS/    # Cartella specifica per ogni scansione (generata automaticamente)
+│       ├── safe/           # Immagini classificate come sicure
+│       ├── unsafe/         # Immagini classificate come inappropriate
+│       └── classification_log_YYYYMMDD_HHMMSS.txt  # Log dettagliato della scansione
+├── main.py                 # Script principale
+├── requirements.txt        # Dipendenze Python
+└── [directory_personalizzata]/  # Directory da analizzare (specificata dall'utente)
 ```
 
-### 🔄 Processo di Analisi
-
-1. **Preparazione:** Inserire tutte le immagini da analizzare nella cartella `img/` del progetto
-2. **Esecuzione:** Avviare il programma con `python main.py`
-3. **Elaborazione:** Il sistema analizza automaticamente tutte le immagini presenti nella cartella `img/`
-4. **Classificazione:** Le immagini vengono automaticamente copiate in:
-   - `safe/` - Immagini classificate come appropriate e sicure
-   - `unsafe/` - Immagini classificate come inappropriate o contenenti contenuti sensibili
+**Note:**
+- Il programma chiederà quale directory analizzare all'avvio
+- Ogni scansione crea una nuova cartella con timestamp in `scan/`
+- I risultati sono organizzati cronologicamente per sessione
+- Il log è salvato direttamente nella cartella della sessione
+- Le immagini originali rimangono intatte nella directory di origine
 
 ### 📋 Formati Supportati
 - JPEG (.jpg, .jpeg)
