@@ -236,7 +236,7 @@ def main():
         return
     
     # Parametri configurabili
-    BATCH_SIZE = 32  # Modifica secondo le tue esigenze
+    BATCH_SIZE = 4  # Modifica secondo le tue esigenze
     THRESHOLD = 0.4  # Soglia per considerare unsafe (0.0 - 1.0)
     
     print(f"\nDirectory da analizzare: {input_directory}")

@@ -46,14 +46,14 @@ Questo sistema di rilevamento automatico utilizza il modulo **NudeNet**, una ret
 
 ```
 nudenet/
-├── scan/                    # Cartella principale contenente tutte le scansioni
-│   └── nome_directory_20240629_143052/    # Cartella specifica per ogni scansione (generata automaticamente)
-│       ├── safe/           # Immagini classificate come sicure
-│       ├── unsafe/         # Immagini classificate come inappropriate
+├── scan/                                           # Cartella principale contenente tutte le scansioni
+│   └── nome_directory_20240629_143052/             # Cartella specifica per ogni scansione (generata automaticamente)
+│       ├── safe/                                   # Immagini classificate come sicure
+│       ├── unsafe/                                 # Immagini classificate come inappropriate
 │       └── classification_log_YYYYMMDD_HHMMSS.txt  # Log dettagliato della scansione
-├── main.py                 # Script principale
-├── requirements.txt        # Dipendenze Python
-└── [directory_personalizzata]/  # Directory da analizzare (specificata dall'utente)
+├── main.py                                         # Script principale
+├── requirements.txt                                # Dipendenze Python
+└── [directory_personalizzata]/                     # Directory da analizzare (specificata dall'utente)
 ```
 
 **Note:**
@@ -247,7 +247,7 @@ pip list
 
 - **Importante:** Verificare sempre che l'ambiente virtuale sia attivato prima di installare dipendenze o eseguire il programma
 - **Troubleshooting:** In caso di errori durante l'installazione delle dipendenze, assicurarsi di avere tutti i prerequisiti di sistema installati
-- **Performance:** Per migliori performance su Linux, considerare l'installazione di CUDA se si dispone di una GPU NVIDIA compatibile
+- **Performance:** Per ottimizzare le prestazioni, regola il parametro `BATCH_SIZE` in base alle specifiche della tua macchina. Un valore più alto (es. 32-64) è consigliato per GPU potenti con molta VRAM, mentre valori più bassi (es. 8-16) sono più adatti per hardware con risorse limitate. Monitora l'utilizzo della memoria durante l'esecuzione per trovare il valore ottimale.
 
 ### 🔧 Risoluzione Problemi Comuni
 
