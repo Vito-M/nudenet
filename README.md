@@ -47,7 +47,7 @@ Questo sistema di rilevamento automatico utilizza il modulo **NudeNet**, una ret
 ```
 nudenet/
 ├── scan/                    # Cartella principale contenente tutte le scansioni
-│   └── YYYYMMDD_HHMMSS/    # Cartella specifica per ogni scansione (generata automaticamente)
+│   └── nome_directory_20240629_143052/    # Cartella specifica per ogni scansione (generata automaticamente)
 │       ├── safe/           # Immagini classificate come sicure
 │       ├── unsafe/         # Immagini classificate come inappropriate
 │       └── classification_log_YYYYMMDD_HHMMSS.txt  # Log dettagliato della scansione

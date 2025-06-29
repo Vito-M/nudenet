@@ -32,18 +32,21 @@ def get_input_directory():
             
         return str(dir_path)
 
-def setup_scan_directories():
-    """Crea la struttura di cartelle scan/YYYYMMDD_HHMMSS/safe|unsafe|logs"""
+def setup_scan_directories(input_directory):
+    """Crea la struttura di cartelle scan/nome_YYYYMMDD_HHMMSS/safe|unsafe"""
     # Crea la cartella scan principale
     scan_dir = Path("scan")
     scan_dir.mkdir(exist_ok=True)
     
-    # Crea una sottocartella con timestamp
+    # Ottieni il nome della directory da analizzare
+    dir_name = Path(input_directory).name
+    
+    # Crea una sottocartella con nome directory + timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    session_dir = scan_dir / timestamp
+    session_dir = scan_dir / f"{dir_name}_{timestamp}"
     session_dir.mkdir(exist_ok=True)
     
-    # Crea le sottocartelle safe, unsafe e logs
+    # Crea le sottocartelle safe, unsafe
     safe_dir = session_dir / "safe"
     unsafe_dir = session_dir / "unsafe"
     logs_dir = session_dir
@@ -107,8 +110,8 @@ def classify_and_organize_images(input_directory, batch_size, threshold):
     """
     start_time = time.time()
     
-    # Setup delle cartelle nella struttura scan/timestamp/
-    safe_dir, unsafe_dir, logs_dir, session_dir = setup_scan_directories()
+    # Setup delle cartelle nella struttura scan/nome_timestamp/
+    safe_dir, unsafe_dir, logs_dir, session_dir = setup_scan_directories(input_directory)
     
     # Crea il file di log
     log_path = create_log_file(logs_dir, input_directory)
@@ -234,7 +237,7 @@ def main():
     
     # Parametri configurabili
     BATCH_SIZE = 32  # Modifica secondo le tue esigenze
-    THRESHOLD = 0.5  # Soglia per considerare unsafe (0.0 - 1.0)
+    THRESHOLD = 0.4  # Soglia per considerare unsafe (0.0 - 1.0)
     
     print(f"\nDirectory da analizzare: {input_directory}")
     print(f"Batch size: {BATCH_SIZE}")
